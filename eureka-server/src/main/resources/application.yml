@@ -1,0 +1,23 @@
+server:
+  port: 8761                    # Standard port for Eureka — don't change this
+
+spring:
+  application:
+    name: eureka-server
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    register-with-eureka: false  # Eureka should NOT register itself
+    fetch-registry: false        # Eureka should NOT fetch from itself
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  server:
+    wait-time-in-ms-when-sync-empty: 0  # Faster startup in development
+
+
+#The two `false` settings are important. Without them, Eureka tries to register with itself and throws errors on startup.
+
+---
+
