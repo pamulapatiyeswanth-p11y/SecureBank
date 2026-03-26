@@ -1,0 +1,128 @@
+name: SecureBank CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  JAVA_VERSION: '17'
+  BUILD_TOOL: 'maven'   # Change to 'gradle' if needed
+
+jobs:
+
+  # ─────────────────────────────────────────
+  # JOB 1: Build & Test (CI)
+  # ─────────────────────────────────────────
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: maven    # Change to 'gradle' if using Gradle
+
+      # ── Maven build & test ──
+      - name: Build with Maven
+        run: mvn clean verify --no-transfer-progress
+        # For Gradle, replace with:
+        # run: ./gradlew build
+
+      # ── Upload test reports ──
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            **/target/surefire-reports/
+            **/target/failsafe-reports/
+          retention-days: 7
+
+      # ── Upload built JARs for later jobs ──
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: '**/target/*.jar'
+          retention-days: 1
+
+  # ─────────────────────────────────────────
+  # JOB 2: Security Scan
+  # Scans dependencies for known CVEs
+  # ─────────────────────────────────────────
+  security-scan:
+    name: Security Scan (OWASP)
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run OWASP Dependency Check
+        run: mvn org.owasp:dependency-check-maven:check --no-transfer-progress
+        continue-on-error: true   # Won't block deploy; review report manually
+
+      - name: Upload OWASP report
+        uses: actions/upload-artifact@v4
+        with:
+          name: owasp-report
+          path: '**/target/dependency-check-report.html'
+          retention-days: 14
+
+  # ─────────────────────────────────────────
+  # JOB 3: Deploy (CD)
+  # Currently a placeholder — plug in your
+  # cloud provider steps when ready.
+  # ─────────────────────────────────────────
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: [ build-and-test, security-scan ]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+
+      # ── TODO: Add your deployment steps below ──
+      # Examples:
+      #
+      # AWS ECS:
+      #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      #
+      # GCP Cloud Run:
+      #   uses: google-github-actions/deploy-cloudrun@v2
+      #
+      # Azure Container Apps:
+      #   uses: azure/container-apps-deploy-action@v1
+      #
+      # Self-hosted / SSH:
+      #   uses: appleboy/ssh-action@v1
+      #     with:
+      #       host: ${{ secrets.SERVER_HOST }}
+      #       username: ${{ secrets.SERVER_USER }}
+      #       key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #       script: |
+      #         systemctl restart securebank
+
+      - name: Deploy placeholder
+        run: echo "✅ Build passed. Add deployment steps here when ready."
