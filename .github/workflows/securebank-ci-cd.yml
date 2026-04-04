@@ -2,7 +2,7 @@ name: SecureBank CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop , feature/user-service ]
+    branches: [ "**" ]
   pull_request:
     branches: [ main ]
 
