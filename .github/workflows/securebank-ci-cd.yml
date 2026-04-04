@@ -38,7 +38,7 @@ jobs:
       # - name: Build Eureka Service
         # run: mvn clean verify -f eureka-service/pom.xml --no-transfer-progress
       - name: Build User Service
-        run: mvn -f user-service/pom.xml clean install
+        run: mvn -f feature/user-service/pom.xml clean install
 
       # ── Upload test reports ──
       - name: Upload test results
