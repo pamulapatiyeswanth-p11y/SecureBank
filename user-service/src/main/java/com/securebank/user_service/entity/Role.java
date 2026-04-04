@@ -4,6 +4,7 @@ public enum Role {
     CUSTOMER,
     STAFF,
     LOAN_OFFICER,
+    SUPER_ADMIN,
     ADMIN,
     UNDERWRITER,
     CASE_MANAGER ;

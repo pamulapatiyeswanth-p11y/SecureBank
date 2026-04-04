@@ -1,12 +1,10 @@
-
-## Server Port Configuration
 server:
   port: 8081
 
 spring:
   application:
-    name: user-service   
-### Database Configuration
+    name: user-service
+
   datasource:
     url: jdbc:mysql://localhost:3306/userservice_db
     username: root
@@ -15,18 +13,22 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update   # Auto-creates/updates tables from entities
-    show-sql: true       # Prints SQL to console
+      ddl-auto: update
+    show-sql: true
     properties:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
 
-## Eureka Client Configuration
 eureka:
+  instance:
+    prefer-ip-address: true
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/   # Eureka Server URL
+      defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
-    prefer-ip-address: true
+
+jwt:
+  secret: 4AwwIqR15i/w2Ql4dv8vP8M7gApBkFVJIxTR/6f7W4o=
+  expiration: 86400000
