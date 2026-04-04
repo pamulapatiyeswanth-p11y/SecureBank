@@ -15,7 +15,7 @@ public interface UserService {
     List<UserResponse> getAllUsers();
     UserResponse createStaffUser(CreateStaffRequest request);
     void deactivateUser(Long userId);
-    void activeUser(Long userId);
+    void activateUser(Long userId);
 
 
     //User + staff

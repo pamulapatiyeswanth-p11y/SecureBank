@@ -32,3 +32,7 @@ eureka:
 jwt:
   secret: 4AwwIqR15i/w2Ql4dv8vP8M7gApBkFVJIxTR/6f7W4o=
   expiration: 86400000
+
+fast2sms:
+  api-key: ZBbdsxfz85aNgOupH6yQ0PJ2evEnXcVR9wjkrIFM73hAiUt1mYYxUMGuOtHJqAQPIwWS0NeCn5R9Thv2    # ← paste your key here
+  api-url: https://www.fast2sms.com/dev/bulkV2

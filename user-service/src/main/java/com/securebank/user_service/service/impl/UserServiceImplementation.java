@@ -40,7 +40,7 @@ public class UserServiceImplementation implements UserService {
     @Override
     public UserResponse createStaffUser(CreateStaffRequest request) {
         log.info("Creating staff account with email: {}", request.getEmail());
-        if(request.getRole() == Role.CUSTOMER || request.getRole() == Role.SUPER_ADMIN){
+        if(request.getRole() == Role.CUSTOMER || request.getRole() == Role.ADMIN){
             throw new IllegalArgumentException("Can only create STAFF or " +
                     "LOAN_OFFICER or UNDERWRITER or CASE_MANAGER accounts through this endpoint");
         }
@@ -76,7 +76,7 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
-    public void activeUser(Long userId) {
+    public void activateUser(Long userId) {
 
         User user = findByUserId(userId);
         if(user.isEnabled()){
@@ -141,7 +141,7 @@ public class UserServiceImplementation implements UserService {
     public UserResponse updateUserProfile(Long userId, UpdateProfileRequest request) {
 
         User user = findByUserId(userId);
-        //Provided a new mobile number but checks if it already exists for another account
+        //Provided a new mobile number but checks if it already exists for another user
         if (!user.getPhoneNumber().equals(request.getPhoneNumber())
                 && userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
             throw new ResourceAlreadyExistsException("Phone number is already in use" + request.getPhoneNumber());

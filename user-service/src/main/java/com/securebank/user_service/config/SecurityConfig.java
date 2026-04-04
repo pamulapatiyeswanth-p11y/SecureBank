@@ -1,5 +1,7 @@
 package com.securebank.user_service.config;
 
+import com.securebank.user_service.security.CustomAccessDeniedHandler;
+import com.securebank.user_service.security.CustomAuthenticationEntryPoint;
 import com.securebank.user_service.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.webmvc.autoconfigure.WebMvcProperties;
@@ -26,6 +28,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -49,6 +53,9 @@ public class SecurityConfig {
             .requestMatchers("/api/auth/**").permitAll() // Allow unauthenticated access to auth endpoints
             // Everything else requires a valid JWT
             .anyRequest().authenticated())
+             .exceptionHandling(ex ->
+                     ex.accessDeniedHandler(accessDeniedHandler)
+                             .authenticationEntryPoint(authenticationEntryPoint))
         // Stateless — no sessions, JWT only
         // Require authentication for all other endpoints
                 .sessionManagement(

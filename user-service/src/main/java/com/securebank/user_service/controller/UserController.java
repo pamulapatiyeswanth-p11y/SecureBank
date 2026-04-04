@@ -1,6 +1,8 @@
 package com.securebank.user_service.controller;
 
+import com.securebank.user_service.dto.request.CreateStaffRequest;
 import com.securebank.user_service.dto.request.UpdateProfileRequest;
+import com.securebank.user_service.dto.request.UpdateRoleRequest;
 import com.securebank.user_service.dto.response.ApiResponse;
 import com.securebank.user_service.dto.response.UserResponse;
 import com.securebank.user_service.service.impl.UserServiceImplementation;
@@ -13,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.parameters.P;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
@@ -20,6 +23,7 @@ import java.nio.file.AccessDeniedException;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@Validated
 public class UserController {
 
     private final UserServiceImplementation userServiceImplementation;
@@ -39,7 +43,7 @@ public class UserController {
            @AuthenticationPrincipal UserDetails userDetails)
    {
        UserResponse response = userServiceImplementation.getMyProfile(userDetails.getUsername());
-       return ResponseEntity.ok().body(ApiResponse.success("profile updated successfully",response));
+       return ResponseEntity.ok().body(ApiResponse.success("Profile fetched successfully",response));
 
    }
    @GetMapping("/{userId}")
@@ -49,16 +53,51 @@ public class UserController {
        UserResponse userResponse = userServiceImplementation.getUserByID(userId,userDetails);
        return ResponseEntity.ok().body(ApiResponse.success("User found",userResponse));
    }
-    //Staff + Admin
+    //--------Staff + Admin--------------------------------------------------------
     @PatchMapping("/{userId}/profile")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<UserResponse>> updateUserProfile(
             @PathVariable Long userId,
-            @RequestBody UpdateProfileRequest request){
+            @Valid @RequestBody UpdateProfileRequest request){
         UserResponse response = userServiceImplementation.updateUserProfile(userId,request);
         return ResponseEntity.ok().body(ApiResponse.success(" User profile updated successfully",response));
     }
 
+  //----------Admin only--------------------------------------------------------
 
+  @PostMapping("/staff")
+  @PreAuthorize("hasAnyRole('ADMIN')")
+  public ResponseEntity<ApiResponse<UserResponse>> createStaff(
+          @Valid @RequestBody CreateStaffRequest request){
+        UserResponse response = userServiceImplementation.createStaffUser(request);
+      return ResponseEntity.ok().body(ApiResponse.success("Staff account created successfully",response));
+
+
+  }
+
+  @PatchMapping("/{userId}/role")
+  @PreAuthorize("hasAnyRole('ADMIN')")
+  public ResponseEntity<ApiResponse<UserResponse>> updateUserRole(
+          @PathVariable Long userId,
+          @Valid @RequestBody UpdateRoleRequest request){
+      UserResponse response = userServiceImplementation.updateUserRole(userId,request);
+      return ResponseEntity.ok().body(ApiResponse.success(" User Role updated successfully",response));
+  }
+
+  @PatchMapping("/{userId}/activate")
+  @PreAuthorize("hasAnyRole('ADMIN')")
+  public ResponseEntity<ApiResponse<UserResponse>> activateUser(
+          @PathVariable Long userId){
+      userServiceImplementation.activateUser(userId);
+      return ResponseEntity.ok().body(ApiResponse.success("User activated successfully",null));
+  }
+
+    @PatchMapping("/{userId}/deactivate")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<ApiResponse<UserResponse>> deactivateUser(
+            @PathVariable Long userId){
+        userServiceImplementation.deactivateUser(userId);
+        return ResponseEntity.ok().body(ApiResponse.success("User deactivated successfully",null));
+    }
 
 }

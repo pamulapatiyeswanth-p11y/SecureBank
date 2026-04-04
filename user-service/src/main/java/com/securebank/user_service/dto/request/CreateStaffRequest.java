@@ -3,10 +3,7 @@ package com.securebank.user_service.dto.request;
 
 import com.securebank.user_service.entity.Role;
 import jakarta.persistence.Column;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import jdk.jfr.Name;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,7 +27,7 @@ public class CreateStaffRequest {
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$",
             message = "Invalid password format. Minimum eight characters, at least one letter, one number and one special character")
     private String password;
-    @NotBlank(message = "Role is required")
+    @NotNull(message = "Role is required")
     private Role role; //set by Admin
     @NotBlank(message = "Phone number is required")
     @Pattern(regexp = "^[0-9]{10}$",message = "Phone number must be 10 digits")
