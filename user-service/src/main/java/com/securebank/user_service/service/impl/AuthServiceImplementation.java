@@ -1,17 +1,27 @@
-package com.securebank.user_service.service;
+package com.securebank.user_service.service.impl;
 
+import com.securebank.user_service.dto.request.LoginRequest;
 import com.securebank.user_service.dto.request.RegisterRequest;
+import com.securebank.user_service.dto.response.LoginResponse;
 import com.securebank.user_service.dto.response.UserResponse;
 import com.securebank.user_service.entity.Role;
 import com.securebank.user_service.entity.User;
+import com.securebank.user_service.exception.InvalidCredentialsException;
 import com.securebank.user_service.exception.ResourceAlreadyExistsException;
 import com.securebank.user_service.repository.UserRepository;
-import com.securebank.user_service.service.impl.AuthService;
-import lombok.Builder;
+import com.securebank.user_service.security.JwtUtil;
+import com.securebank.user_service.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.sql.Time;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +30,10 @@ public class AuthServiceImplementation implements AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final UserDetailsService userDetailsService;
+    private final JwtUtil jwtUtil;
+    @Override
     public UserResponse register(RegisterRequest request)
     {
         log.info("Registering new user with email: {}", request.getEmail());
@@ -44,6 +58,37 @@ public class AuthServiceImplementation implements AuthService {
         return mapToUserResponse(savedUser);
     }
 
+    @Override
+    public LoginResponse login(LoginRequest request) {
+        log.info("Login attempt for email: {}", request.getEmail());
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+
+        } catch (BadCredentialsException e) {
+            throw new InvalidCredentialsException("Invalid email or password");
+        }
+        // load user from DB
+        User user = userRepository.findByEmail(
+                request.getEmail()).orElseThrow(()->
+                new InvalidCredentialsException("Invalid email or password"));
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+        String jwtToken = jwtUtil.generateToken(
+                userDetails,
+                user.getId(),
+                user.getRole().name());
+        log.info("Login successful for userId: {}", user.getId());
+        return LoginResponse.builder()
+                        .userId(user.getId())
+                        .accessToken(jwtToken)
+                        .tokenType("Bearer")
+                        .expiresIn(jwtUtil.extractExpiration(jwtToken).getTime()-System.currentTimeMillis())
+                        .email(user.getEmail())
+                        .role(user.getRole().name())
+                        .build();
+
+
+    }
     // Private helper — maps entity to DTO
     private UserResponse mapToUserResponse(User savedUser) {
         return UserResponse.builder()
