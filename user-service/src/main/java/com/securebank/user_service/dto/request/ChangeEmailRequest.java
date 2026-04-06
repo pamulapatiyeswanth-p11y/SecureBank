@@ -1,5 +1,6 @@
 package com.securebank.user_service.dto.request;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,7 +11,10 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChangePasswordRequest {
+public class ChangeEmailRequest {
+//    @NotBlank(message = "New email is required")
+//    @Email(message = "Invalid email format")
+//    private String newEmail;
 
     @NotBlank(message = "OTP is required")
     private String otpCode;

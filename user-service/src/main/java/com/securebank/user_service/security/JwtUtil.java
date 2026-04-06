@@ -49,17 +49,17 @@ public class JwtUtil {
                 .compact();
 
     }
-    @PostConstruct
-    public void init() {
-        // This prints the ACTUAL secret being used
-        System.out.println("=== JWT SECRET FROM YML ===");
-        System.out.println(secret);
-        System.out.println("Length chars: " + secret.length());
-        byte[] decoded = Decoders.BASE64.decode(secret);
-        System.out.println("Decoded bytes: " + decoded.length);
-        System.out.println("Decoded bits: " + (decoded.length * 8));
-        System.out.println("===========================");
-    }
+//    @PostConstruct
+//    public void init() {
+//        // This prints the ACTUAL secret being used
+//        System.out.println("=== JWT SECRET FROM YML ===");
+//        System.out.println(secret);
+//        System.out.println("Length chars: " + secret.length());
+//        byte[] decoded = Decoders.BASE64.decode(secret);
+//        System.out.println("Decoded bytes: " + decoded.length);
+//        System.out.println("Decoded bits: " + (decoded.length * 8));
+//        System.out.println("===========================");
+//    }
 
     //Validate Token
     public boolean isTokenValid(String token, UserDetails userDetails){

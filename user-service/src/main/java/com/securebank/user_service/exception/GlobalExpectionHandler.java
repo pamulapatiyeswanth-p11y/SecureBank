@@ -1,6 +1,7 @@
 package com.securebank.user_service.exception;
 
 import com.securebank.user_service.dto.response.ApiResponse;
+import com.securebank.user_service.security.JwtAuthenticationFilter;
 import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -94,6 +95,7 @@ public class GlobalExpectionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(ApiResponse.error(ex.getMessage()));
     }
+
 }
 
 

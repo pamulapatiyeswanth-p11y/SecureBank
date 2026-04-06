@@ -1,8 +1,6 @@
 package com.securebank.user_service.controller;
 
-import com.securebank.user_service.dto.request.CreateStaffRequest;
-import com.securebank.user_service.dto.request.UpdateProfileRequest;
-import com.securebank.user_service.dto.request.UpdateRoleRequest;
+import com.securebank.user_service.dto.request.*;
 import com.securebank.user_service.dto.response.ApiResponse;
 import com.securebank.user_service.dto.response.UserResponse;
 import com.securebank.user_service.service.impl.UserServiceImplementation;
@@ -53,6 +51,36 @@ public class UserController {
        UserResponse userResponse = userServiceImplementation.getUserByID(userId,userDetails);
        return ResponseEntity.ok().body(ApiResponse.success("User found",userResponse));
    }
+
+   @PostMapping("/me/otp/send")
+   public ResponseEntity<ApiResponse<Void>> sendOtp(
+           @AuthenticationPrincipal UserDetails userDetails,
+           @Valid @RequestBody SendOtpRequest request)
+   {
+      userServiceImplementation.sendOtp(userDetails.getUsername(),request);
+       return ResponseEntity.ok()
+               .body(ApiResponse.success("OTP sent to the user successfully. ",null));
+   }
+
+   @PatchMapping("/me/email")
+   public ResponseEntity<ApiResponse<Void>> changeEmail(
+           @AuthenticationPrincipal UserDetails userDetails,
+           @Valid @RequestBody ChangeEmailRequest request)
+   {
+       userServiceImplementation.changeEmail(userDetails.getUsername(),request);
+       return ResponseEntity.ok()
+               .body(ApiResponse.success("Email updated successfully. ",null));
+   }
+    @PatchMapping("/me/phone")
+    public ResponseEntity<ApiResponse<Void>> changePhoneNumber(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody ChangePhoneRequest request)
+    {
+        userServiceImplementation.changePhone(userDetails.getUsername(),request);
+        return ResponseEntity.ok()
+                .body(ApiResponse.success("Phone number updated successfully. ",null));
+    }
+
     //--------Staff + Admin--------------------------------------------------------
     @PatchMapping("/{userId}/profile")
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")

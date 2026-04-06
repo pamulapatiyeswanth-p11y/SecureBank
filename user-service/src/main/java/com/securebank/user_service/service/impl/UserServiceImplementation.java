@@ -1,16 +1,16 @@
 package com.securebank.user_service.service.impl;
 
-import com.securebank.user_service.dto.request.ChangePasswordRequest;
-import com.securebank.user_service.dto.request.CreateStaffRequest;
-import com.securebank.user_service.dto.request.UpdateProfileRequest;
-import com.securebank.user_service.dto.request.UpdateRoleRequest;
+import com.securebank.user_service.dto.request.*;
 import com.securebank.user_service.dto.response.UserResponse;
+import com.securebank.user_service.entity.OtpPurpose;
 import com.securebank.user_service.entity.Role;
 import com.securebank.user_service.entity.User;
+import com.securebank.user_service.exception.BadRequestException;
 import com.securebank.user_service.exception.ResourceAlreadyExistsException;
 import com.securebank.user_service.exception.ResourceNotFoundException;
 import com.securebank.user_service.repository.UserRepository;
 import com.securebank.user_service.service.UserService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -28,6 +28,7 @@ import java.util.List;
 public class UserServiceImplementation implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final OtpServiceImplementation otpService;
 
     @Override
     public List<UserResponse> getAllUsers() {
@@ -85,6 +86,68 @@ public class UserServiceImplementation implements UserService {
         log.info("Re-activating user with id: {}", userId);
         user.setEnabled(true);
         userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void sendOtp(String email, SendOtpRequest request) {
+        User user = findByUserEmail(email);
+        if ((request.getPurpose() != OtpPurpose.CHANGE_PASSWORD)
+                && (request.getPendingValue() == null || request.getPendingValue().isBlank())) {
+            throw new BadRequestException("New value is required for " + request.getPurpose());
+        }
+        if (request.getPurpose() == OtpPurpose.CHANGE_PHONE) {
+
+            // Validate format
+            if (!request.getPendingValue().matches("^[0-9]{10}$")) {
+                throw new BadRequestException(
+                        "New phone must be 10 digits");
+            }
+            if(userRepository.existsByPhoneNumber(request.getPendingValue())){
+                throw new ResourceAlreadyExistsException("Phone number is already in use: "+ request.getPendingValue() +
+                        ". Please provide a different one.");
+            }
+        }
+        if (request.getPurpose() == OtpPurpose.CHANGE_EMAIL
+                && userRepository.existsByEmail(request.getPendingValue())) {
+            throw new ResourceAlreadyExistsException("Email is already in use: "+ request.getPendingValue() +
+                    ". Please provide a different one.");
+        }
+
+            OtpPurpose otpPurpose = OtpPurpose.valueOf(request.getPurpose().name().toUpperCase());
+            otpService.sendOtp(user.getId(), otpPurpose, request.getPendingValue());
+
+    }
+    @Override
+    @Transactional
+    public void changeEmail(String email, ChangeEmailRequest request) {
+        User user = findByUserEmail(email);
+        // Validate OTP before applying change
+        String newEmail = otpService.validateOtp(user.getId(),OtpPurpose.CHANGE_EMAIL,request.getOtpCode());
+        //Double check if the new email is already in use
+        if(userRepository.existsByEmail(newEmail)){
+            throw new ResourceAlreadyExistsException("Email is already in use: "+ newEmail +
+                    ". Please provide a different one.");
+        }
+        user.setEmail(newEmail);
+        userRepository.save(user);
+        log.info("Email changed successfully for userId: {}", user.getId());
+    }
+
+    @Override
+    @Transactional
+    public void changePhone(String email, ChangePhoneRequest request) {
+        User user = findByUserEmail(email);
+        // Validate OTP before applying change
+        String newPhone = otpService.validateOtp(user.getId(),OtpPurpose.CHANGE_PHONE,request.getOtpCode());
+        //Double check if the new phone number is already in use
+        if(userRepository.existsByPhoneNumber(newPhone)){
+            throw new ResourceAlreadyExistsException("Phone number is already in use: "+newPhone +
+                    ". Please provide a different one.");
+        }
+        user.setPhoneNumber(newPhone);
+        userRepository.save(user);
+        log.info("Phone number changed successfully for userId: {}", user.getId());
     }
 
     @Override
@@ -168,6 +231,13 @@ public class UserServiceImplementation implements UserService {
         log.info("Fetching user with id: {}", userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(()-> new ResourceNotFoundException("User not found with ID: "+ userId));
+        return user;
+    }
+
+    private User findByUserEmail(String email){
+        log.info("Fetching user with email: {}", email);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(()-> new ResourceNotFoundException("User not found with email: "+ email));
         return user;
     }
 
