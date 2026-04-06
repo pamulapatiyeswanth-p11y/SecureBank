@@ -29,6 +29,7 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
 
+
 jwt:
   secret: ${JWT_SECRET}              # read from environment variable
   expiration: ${JWT_EXPIRATION:86400000}   # default 1 day if not set

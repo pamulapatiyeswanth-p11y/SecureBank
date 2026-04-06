@@ -15,7 +15,5 @@ public class UpdateProfileRequest {
     private String firstName;
     @NotBlank(message = "Last name cannot be empty")
     private String lastName;
-    @NotBlank(message = "Phone number is required")
-    @Pattern(regexp = "^[0-9]{10}$",message = "Phone number must be 10 digits")
-    private String phoneNumber;
+
 }

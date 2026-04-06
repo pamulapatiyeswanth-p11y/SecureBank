@@ -2,17 +2,14 @@ package com.securebank.user_service.exception;
 
 import com.securebank.user_service.dto.response.ApiResponse;
 import com.securebank.user_service.security.JwtAuthenticationFilter;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,8 +55,8 @@ public class GlobalExpectionHandler {
                 .body(ApiResponse.error(ex.getMessage() + ". Please contact support."));
     }
 
-        @ExceptionHandler(AuthorizationDeniedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAuthorizationDeniedException(AuthorizationDeniedException ex) {
+        @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAccessDeniedException(AccessDeniedException ex) {
         return ResponseEntity
               .status(HttpStatus.FORBIDDEN)
             .body(ApiResponse.error("You are not authorized to do this operation. " + ex.getMessage()));
@@ -88,13 +85,6 @@ public class GlobalExpectionHandler {
                 .body(ApiResponse.error(ex.getMessage()));
     }
 
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAccessDeniedException(AccessDeniedException ex)
-    {
-
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(ApiResponse.error(ex.getMessage()));
-    }
 
 }
 

@@ -3,7 +3,6 @@ package com.securebank.user_service.security;
 import com.securebank.user_service.entity.User;
 import com.securebank.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

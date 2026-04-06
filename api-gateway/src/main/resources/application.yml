@@ -1,0 +1,69 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      routes:
+
+        # ─── User Service Routes ──────────────────────────────────
+        - id: user-service-auth
+          uri: lb://user-service          # lb = load balanced via Eureka
+          predicates:
+            - Path=/api/auth/**           # Public — no JWT needed
+          filters:
+            - StripPrefix=0
+
+        - id: user-service-users
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**          # Protected — JWT required
+          filters:
+            - StripPrefix=0
+            - AuthFilter                  # Our custom JWT filter
+
+        # ─── Account Service Routes ───────────────────────────────
+        # Uncomment when you build Account Service
+        # - id: account-service
+        #   uri: lb://account-service
+        #   predicates:
+        #     - Path=/api/accounts/**
+        #   filters:
+        #     - StripPrefix=0
+        #     - AuthFilter
+
+        # ─── Transaction Service Routes ───────────────────────────
+        # - id: transaction-service
+        #   uri: lb://transaction-service
+        #   predicates:
+        #     - Path=/api/transactions/**
+        #   filters:
+        #     - StripPrefix=0
+        #     - AuthFilter
+
+        # ─── Loan Service Routes ──────────────────────────────────
+        # - id: loan-service
+        #   uri: lb://loan-service
+        #   predicates:
+        #     - Path=/api/loans/**
+        #   filters:
+        #     - StripPrefix=0
+        #     - AuthFilter
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+jwt:
+  secret: 4AwwIqR15i/w2Ql4dv8vP8M7gApBkFVJIxTR/6f7W4o=
+
+# Logging — helpful during development
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
